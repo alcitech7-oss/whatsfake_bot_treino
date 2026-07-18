@@ -23,7 +23,7 @@ mensagens_completas = carregar_mensagens()
 mensagens_entregues = []
 index_atual = 0
 LOGADO = False
-INTERVALO_SEGUNDOS = 5
+INTERVALO_SEGUNDOS = 10
 TEMPO_LOGIN = 5
 
 
