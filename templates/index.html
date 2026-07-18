@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Watfake - Simulador WhatsApp</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
             background: #e5ddd5;
@@ -37,10 +36,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        .chat-header .status {
-            font-size: 12px;
-            opacity: 0.8;
-        }
+        .chat-header .status { font-size: 12px; opacity: 0.8; }
         .chat-header .progresso-header {
             font-size: 13px;
             background: rgba(255,255,255,0.2);
@@ -62,7 +58,6 @@
             color: #555;
             text-align: center;
         }
-        .chat-list .info strong { color: #075E54; }
         .chat-item {
             padding: 10px 20px;
             cursor: pointer;
@@ -102,80 +97,24 @@
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .loading-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255,255,255,0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            transition: opacity 0.8s ease;
-        }
-        .loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .loading-overlay .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #e0e0e0;
-            border-top-color: #075E54;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        .loading-overlay p {
-            margin-top: 15px;
-            color: #555;
-            font-size: 16px;
-        }
-        .loading-overlay .timer {
-            font-weight: bold;
-            color: #075E54;
-            font-size: 24px;
-            margin-top: 5px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .chat-list-wrapper {
-            position: relative;
-            flex: 1;
-        }
     </style>
 </head>
 <body>
     <div class="chat-container">
-        <!-- CABEÇALHO -->
         <div class="chat-header">
             <span>📱 Watfake</span>
             <span class="progresso-header" id="progressoHeader">📦 0/0 entregues</span>
-            <span class="status" id="statusHeader">🔴 Desconectado</span>
+            <span class="status" id="statusHeader">🟢 Conectado</span>
         </div>
 
-        <!-- LISTA DE CONVERSAS -->
-        <div class="chat-list-wrapper">
-            <!-- TELA DE LOGIN SIMULADO -->
-            <div class="loading-overlay" id="loadingOverlay">
-                <div class="spinner"></div>
-                <p>🔄 Conectando ao Watfake...</p>
-                <div class="timer" id="timerLogin">5</div>
-                <p style="font-size: 12px; color: #999;">Simulando login no WhatsApp Web</p>
+        <div class="chat-list">
+            <div class="info">
+                ⏳ Mensagens entregues: <strong id="contador">0</strong>
+                <span id="statusTimeline" style="margin-left: 15px;">✅ Timeline ativa</span>
             </div>
-
-            <div class="chat-list" id="chatList">
-                <div class="info">
-                    ⏳ Mensagens entregues: <strong id="contador">0</strong>
-                    <span id="statusTimeline" style="margin-left: 15px;">⏳ Aguardando login...</span>
-                </div>
-                <div id="containerList">
-                    <!-- Os containers serão injetados aqui pelo JavaScript -->
-                </div>
-            </div>
+            <div id="containerList"></div>
         </div>
 
-        <!-- STATUS BAR -->
         <div class="status-bar">
             <span id="progresso">📊 Progresso: 0/0</span>
             <span id="proxima">⏰ Próxima mensagem em: --</span>
@@ -185,43 +124,9 @@
     </div>
 
     <script>
-        // ============================================
-        // ESTADO
-        // ============================================
         let mensagens = {{ mensagens|tojson }};
         const totalMensagens = {{ total }};
-        const tempoLogin = {{ tempo_login }};
-        let logado = false;
 
-        // ============================================
-        // TIMER DE LOGIN
-        // ============================================
-        let timerLogin = tempoLogin;
-        const timerElement = document.getElementById('timerLogin');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const statusHeader = document.getElementById('statusHeader');
-
-        function atualizarTimerLogin() {
-            timerElement.textContent = timerLogin;
-            if (timerLogin > 0) {
-                timerLogin--;
-                setTimeout(atualizarTimerLogin, 1000);
-            } else {
-                loadingOverlay.classList.add('hidden');
-                logado = true;
-                statusHeader.innerHTML = '🟢 Conectado';
-                document.getElementById('statusTimeline').innerHTML = '✅ Login realizado! Iniciando timeline...';
-                document.getElementById('statusTimeline').style.color = '#4CAF50';
-                buscarNovasMensagens();
-            }
-        }
-
-        // Inicia o timer de login
-        atualizarTimerLogin();
-
-        // ============================================
-        // RENDERIZA OS CONTAINERS
-        // ============================================
         function renderizarContainers() {
             const containerList = document.getElementById('containerList');
             const contador = document.getElementById('contador');
@@ -255,9 +160,7 @@
                 naoLidasSpan.setAttribute('data-testid', 'icon-unread-count');
                 naoLidasSpan.className = 'nao-lidas';
                 naoLidasSpan.textContent = msg.nao_lidas > 0 ? msg.nao_lidas : '';
-                if (msg.nao_lidas == 0) {
-                    naoLidasSpan.style.display = 'none';
-                }
+                if (msg.nao_lidas == 0) naoLidasSpan.style.display = 'none';
 
                 container.appendChild(nomeDiv);
                 container.appendChild(msgDiv);
@@ -269,77 +172,38 @@
             contador.textContent = mensagens.length;
             progresso.textContent = `📊 Progresso: ${mensagens.length}/${totalMensagens}`;
             progressoHeader.textContent = `📦 ${mensagens.length}/${totalMensagens} entregues`;
-
-            const agora = new Date();
-            ultimaAtualizacao.textContent = `🕐 Atualizado: ${agora.toLocaleTimeString()}`;
+            ultimaAtualizacao.textContent = `🕐 Atualizado: ${new Date().toLocaleTimeString()}`;
         }
 
-        // ============================================
-        // BUSCA NOVAS MENSAGENS DO SERVIDOR
-        // ============================================
         function buscarNovasMensagens() {
-            if (!logado) return;
-
             fetch('/api/mensagens')
                 .then(response => response.json())
                 .then(data => {
                     const novasMensagens = data.entregues;
-                    
                     if (novasMensagens.length > mensagens.length) {
                         mensagens = novasMensagens;
                         renderizarContainers();
-                        
-                        const statusTimeline = document.getElementById('statusTimeline');
-                        statusTimeline.innerHTML = `📩 Nova mensagem entregue! (${mensagens.length}/${totalMensagens})`;
-                        statusTimeline.style.color = '#25D366';
-                        setTimeout(() => { statusTimeline.style.color = ''; }, 3000);
                     }
-
                     const pendentes = data.pendentes;
-                    const proximaDiv = document.getElementById('proxima');
-                    if (pendentes > 0) {
-                        proximaDiv.textContent = `⏰ Próxima mensagem em ~5s (${pendentes} pendentes)`;
-                    } else {
-                        proximaDiv.textContent = '✅ Todas as mensagens entregues!';
-                    }
-
-                    if (pendentes === 0 && mensagens.length > 0) {
-                        document.getElementById('statusTimeline').innerHTML = '✅ Todas as mensagens entregues!';
-                        document.getElementById('statusTimeline').style.color = '#4CAF50';
-                    }
-                })
-                .catch(error => console.error('Erro ao buscar mensagens:', error));
+                    document.getElementById('proxima').textContent = pendentes > 0 ? 
+                        `⏰ ${pendentes} mensagens pendentes` : '✅ Todas entregues!';
+                });
         }
 
-        // ============================================
-        // RESETAR FILA
-        // ============================================
         function resetarFila() {
-            if (confirm('Resetar a fila? Todas as mensagens serão removidas.')) {
+            if (confirm('Resetar a fila?')) {
                 fetch('/api/reset', { method: 'POST' })
                     .then(() => {
                         mensagens = [];
-                        logado = false;
-                        timerLogin = tempoLogin;
-                        loadingOverlay.classList.remove('hidden');
-                        statusHeader.innerHTML = '🔴 Desconectado';
-                        document.getElementById('statusTimeline').innerHTML = '⏳ Aguardando login...';
-                        document.getElementById('proxima').textContent = '⏰ Próxima mensagem em: --';
                         renderizarContainers();
-                        atualizarTimerLogin();
+                        document.getElementById('proxima').textContent = '⏰ Resetado!';
                     });
             }
         }
 
-        // ============================================
-        // INICIALIZA
-        // ============================================
         renderizarContainers();
         setInterval(buscarNovasMensagens, 3000);
-
-        console.log('✅ Watfake com Login Simulado e Timeline rodando!');
-        console.log(`📦 Total de mensagens: ${totalMensagens}`);
-        console.log(`⏱️ Login simulado em: ${tempoLogin} segundos`);
+        console.log('✅ Watfake rodando!');
     </script>
 </body>
 </html>
