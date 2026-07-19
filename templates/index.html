@@ -123,9 +123,20 @@
         </div>
     </div>
 
+    <!-- ============================================ -->
+    <!-- DADOS VINDOS DO JINJA (Escondidos do JS Linter) -->
+    <!-- ============================================ -->
+    <script id="dados-mensagens" type="application/json">
+        {{ mensagens|tojson|safe }}
+    </script>
+    <div id="dados-meta" data-total="{{ total }}" style="display: none;"></div>
+
     <script>
-        let mensagens = {{ mensagens|tojson }};
-        const totalMensagens = {{ total }};
+        // ============================================
+        // LEITURA DOS DADOS COM SEGURANÇA E SEM ERROS
+        // ============================================
+        let mensagens = JSON.parse(document.getElementById('dados-mensagens').textContent || '[]');
+        const totalMensagens = parseInt(document.getElementById('dados-meta').getAttribute('data-total')) || 0;
 
         function renderizarContainers() {
             const containerList = document.getElementById('containerList');
@@ -144,23 +155,24 @@
                 const nomeDiv = document.createElement('div');
                 nomeDiv.setAttribute('data-testid', 'cell-frame-title');
                 nomeDiv.className = 'nome';
-                nomeDiv.textContent = msg.nome;
+                nomeDiv.textContent = msg.nome || 'Desconhecido';
 
                 const msgDiv = document.createElement('div');
                 msgDiv.setAttribute('data-testid', 'cell-frame-secondary');
                 msgDiv.className = 'mensagem';
-                msgDiv.textContent = msg.mensagem;
+                msgDiv.textContent = msg.mensagem || '';
 
                 const horarioDiv = document.createElement('div');
                 horarioDiv.setAttribute('data-testid', 'cell-frame-primary-detail');
                 horarioDiv.className = 'horario';
-                horarioDiv.textContent = msg.horario;
+                horarioDiv.textContent = msg.horario || '';
 
                 const naoLidasSpan = document.createElement('span');
                 naoLidasSpan.setAttribute('data-testid', 'icon-unread-count');
                 naoLidasSpan.className = 'nao-lidas';
-                naoLidasSpan.textContent = msg.nao_lidas > 0 ? msg.nao_lidas : '';
-                if (msg.nao_lidas == 0) naoLidasSpan.style.display = 'none';
+                const naoLidas = msg.nao_lidas || 0;
+                naoLidasSpan.textContent = naoLidas > 0 ? naoLidas : '';
+                if (naoLidas == 0) naoLidasSpan.style.display = 'none';
 
                 container.appendChild(nomeDiv);
                 container.appendChild(msgDiv);
@@ -187,7 +199,8 @@
                     const pendentes = data.pendentes;
                     document.getElementById('proxima').textContent = pendentes > 0 ? 
                         `⏰ ${pendentes} mensagens pendentes` : '✅ Todas entregues!';
-                });
+                })
+                .catch(err => console.log('Erro ao buscar:', err));
         }
 
         function resetarFila() {
@@ -201,6 +214,9 @@
             }
         }
 
+        // ============================================
+        // INICIALIZA
+        // ============================================
         renderizarContainers();
         setInterval(buscarNovasMensagens, 3000);
         console.log('✅ Watfake rodando!');
